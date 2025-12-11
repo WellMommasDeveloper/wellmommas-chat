@@ -22,6 +22,8 @@
       --df-messenger-chat-window-height: 100vh;
       --df-messenger-chat-window-width: 100vw;
       --df-messenger-chat-bubble-display: none;
+      --df-messenger-titlebar-icon-display: none;
+      --df-messenger-minimized-chat-close-icon-display: none;
       --df-messenger-button-titlebar-color: #FFB538;
       --df-messenger-send-icon: #FFB538; 
       --df-messenger-user-message: #FFD19E;
@@ -39,6 +41,13 @@
     df-messenger::part(text-input) {
       border-radius: 6px !important;
       border: 1px solid #D79D63 !important;
+    }
+    /* Hide minimize/close button */
+    df-messenger::part(titlebar-minimize-button) {
+      display: none !important;
+    }
+    df-messenger::part(titlebar-close-button) {
+      display: none !important;
     }
   </style>
 </head>
