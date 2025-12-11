@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#FFB538">
+  <title>Well Mommas Chat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      height: 100vh; 
+      background: #FFF3E7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loading {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #D79D63;
+      font-size: 18px;
+    }
+    df-messenger {
+      --df-messenger-chat-window-height: 100vh;
+      --df-messenger-chat-window-width: 100vw;
+      --df-messenger-chat-bubble-display: none;
+      --df-messenger-button-titlebar-color: #FFB538;
+      --df-messenger-send-icon: #FFB538; 
+      --df-messenger-user-message: #FFD19E;
+      --df-messenger-bot-message: #F0F1F5;
+      --df-messenger-font-color: #000000;
+      --df-messenger-chip-color: #FFF3E7;
+      --df-messenger-chip-border-color: #D79D63;
+      --df-messenger-chip-text-color: #000000;
+    }
+    df-messenger::part(user-input) {
+      font-size: 14px;
+      color: #000000 !important;
+      background: #FFF3E7 !important;
+    }
+    df-messenger::part(text-input) {
+      border-radius: 6px !important;
+      border: 1px solid #D79D63 !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading chat...</div>
+
+  <df-messenger
+    intent="WELCOME"
+    chat-title="Well Mommas"
+    agent-id="58ced3fd-a2e4-4731-a6bf-bb4defb67e58"
+    chat-icon="https://static.wixstatic.com/media/1ccff3_f6b74224b38140c087a3574241bedfe8~mv2.png"
+    language-code="en"
+    expand="true"
+  ></df-messenger>
+  
+  <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+  
+  <script>
+    // Hide loading message once chat loads
+    window.addEventListener('dfMessengerLoaded', function() {
+      document.getElementById('loading').style.display = 'none';
+      console.log('Dialogflow Messenger loaded successfully');
+    });
+
+    // Log any errors
+    window.addEventListener('df-messenger-error', function(event) {
+      console.error('Dialogflow error:', event.detail);
+      document.getElementById('loading').textContent = 'Error loading chat. Please refresh.';
+    });
+
+    let currentBranch = null;
+    let inputEnabled = false;
+
+    function findInShadowRoots(root, selector) {
+      const found = root.querySelector(selector);
+      if (found) return found;
+      const elements = root.querySelectorAll('*');
+      for (const el of elements) {
+        if (el.shadowRoot) {
+          const result = findInShadowRoots(el.shadowRoot, selector);
+          if (result) return result;
+        }
+      }
+      return null;
+    }
+
+    function findAllInShadowRoots(root, selector) {
+      let results = Array.from(root.querySelectorAll(selector));
+      const elements = root.querySelectorAll('*');
+      for (const el of elements) {
+        if (el.shadowRoot) {
+          results = results.concat(findAllInShadowRoots(el.shadowRoot, selector));
+        }
+      }
+      return results;
+    }
+
+    function hideInput() {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return false;
+      const wrapper = findInShadowRoots(dfMessenger.shadowRoot, '.input-box-wrapper');
+      if (wrapper) {
+        wrapper.style.display = 'none';
+        return true;
+      }
+      return false;
+    }
+
+    function showInput() {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return;
+      const wrapper = findInShadowRoots(dfMessenger.shadowRoot, '.input-box-wrapper');
+      if (wrapper) {
+        wrapper.style.display = '';
+        const input = wrapper.querySelector('input[type="text"]');
+        if (input) {
+          input.setAttribute('placeholder', 'Respond...');
+        }
+        inputEnabled = true;
+      }
+    }
+
+    function checkMessages() {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return;
+      const userMessages = findAllInShadowRoots(dfMessenger.shadowRoot, '.chat-bubble-user, .user-message, .message.user');
+      const messageCount = userMessages.length;
+      const allText = Array.from(userMessages).map(el => el.textContent.toLowerCase()).join(' ');
+      
+      if (currentBranch === null && messageCount >= 1) {
+        if (allText.includes('practitioner') || allText.includes('join well mommas')) {
+          currentBranch = 'nutritional-therapy';
+          showInput();
+          return;
+        } else if (allText.includes('mom') || allText.includes('nutritional guidance')) {
+          currentBranch = 'mom';
+        }
+      }
+      
+      if (!inputEnabled && currentBranch === 'mom' && messageCount >= 2) {
+        showInput();
+      }
+    }
+
+    function maintain() {
+      if (!inputEnabled) {
+        hideInput();
+      }
+      checkMessages();
+    }
+
+    setInterval(maintain, 500);
+  </script>
+</body>
+</html>
