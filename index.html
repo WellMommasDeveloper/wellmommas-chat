@@ -31,12 +31,6 @@
       --df-messenger-chip-border-color: #D79D63;
       --df-messenger-chip-text-color: #000000;
     }
-    @media (min-width: 600px) {
-      df-messenger {
-        --df-messenger-chat-window-height: 600px;
-        --df-messenger-chat-window-width: 400px;
-      }
-    }
     df-messenger::part(user-input) {
       font-size: 14px;
       color: #000000 !important;
@@ -67,7 +61,6 @@
       document.getElementById('loading').style.display = 'none';
       console.log('Dialogflow Messenger loaded successfully');
       hideMinimizeButton();
-      centerOnDesktop();
     });
 
     window.addEventListener('df-messenger-error', function(event) {
@@ -139,22 +132,6 @@
       injectCSS(dfMessenger.shadowRoot);
     }
 
-    function centerOnDesktop() {
-      if (window.innerWidth < 600) return;
-      
-      const dfMessenger = document.querySelector('df-messenger');
-      if (!dfMessenger) return;
-
-      dfMessenger.style.cssText = `
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        right: auto !important;
-        bottom: auto !important;
-        transform: translate(-50%, -50%) !important;
-      `;
-    }
-
     function hideInput() {
       const dfMessenger = document.querySelector('df-messenger');
       if (!dfMessenger?.shadowRoot) return false;
@@ -218,7 +195,6 @@
       checkMessages();
       updatePlaceholder();
       hideMinimizeButton();
-      centerOnDesktop();
     }
 
     setInterval(maintain, 500);
