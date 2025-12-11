@@ -143,31 +143,16 @@
       if (window.innerWidth < 600) return;
       
       const dfMessenger = document.querySelector('df-messenger');
-      if (!dfMessenger?.shadowRoot) return;
+      if (!dfMessenger) return;
 
-      const injectCenterCSS = (shadowRoot) => {
-        if (!shadowRoot) return;
-        if (shadowRoot.querySelector('#center-fix')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'center-fix';
-        style.textContent = `
-          :host, .chat-wrapper, [class*="chat"], [class*="wrapper"], .df-messenger-wrapper {
-            right: auto !important;
-            bottom: auto !important;
-            left: 50% !important;
-            top: 50% !important;
-            transform: translate(-50%, -50%) !important;
-          }
-        `;
-        shadowRoot.appendChild(style);
-        
-        shadowRoot.querySelectorAll('*').forEach(el => {
-          if (el.shadowRoot) injectCenterCSS(el.shadowRoot);
-        });
-      };
-      
-      injectCenterCSS(dfMessenger.shadowRoot);
+      dfMessenger.style.cssText = `
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: translate(-50%, -50%) !important;
+      `;
     }
 
     function hideInput() {
