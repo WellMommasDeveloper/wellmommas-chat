@@ -31,6 +31,16 @@
       --df-messenger-chip-border-color: #D79D63;
       --df-messenger-chip-text-color: #000000;
     }
+    @media (min-width: 600px) {
+      df-messenger {
+        --df-messenger-chat-window-height: 600px;
+        --df-messenger-chat-window-width: 400px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
     df-messenger::part(user-input) {
       font-size: 14px;
       color: #000000 !important;
@@ -197,7 +207,7 @@
       hideMinimizeButton();
     }
 
-    setInterval(maintain, 500);
+    setInterval(maintain, 100);
   </script>
 </body>
 </html>
