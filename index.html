@@ -32,16 +32,9 @@
       --df-messenger-chip-text-color: #000000;
     }
     @media (min-width: 600px) {
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
       df-messenger {
         --df-messenger-chat-window-height: 600px;
         --df-messenger-chat-window-width: 400px;
-        --df-messenger-chat-window-offset: 0;
-        position: static !important;
       }
     }
     df-messenger::part(user-input) {
@@ -74,6 +67,7 @@
       document.getElementById('loading').style.display = 'none';
       console.log('Dialogflow Messenger loaded successfully');
       hideMinimizeButton();
+      centerOnDesktop();
     });
 
     window.addEventListener('df-messenger-error', function(event) {
@@ -145,6 +139,37 @@
       injectCSS(dfMessenger.shadowRoot);
     }
 
+    function centerOnDesktop() {
+      if (window.innerWidth < 600) return;
+      
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return;
+
+      const injectCenterCSS = (shadowRoot) => {
+        if (!shadowRoot) return;
+        if (shadowRoot.querySelector('#center-fix')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'center-fix';
+        style.textContent = `
+          :host, .chat-wrapper, [class*="chat"], [class*="wrapper"], .df-messenger-wrapper {
+            right: auto !important;
+            bottom: auto !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+          }
+        `;
+        shadowRoot.appendChild(style);
+        
+        shadowRoot.querySelectorAll('*').forEach(el => {
+          if (el.shadowRoot) injectCenterCSS(el.shadowRoot);
+        });
+      };
+      
+      injectCenterCSS(dfMessenger.shadowRoot);
+    }
+
     function hideInput() {
       const dfMessenger = document.querySelector('df-messenger');
       if (!dfMessenger?.shadowRoot) return false;
@@ -208,6 +233,7 @@
       checkMessages();
       updatePlaceholder();
       hideMinimizeButton();
+      centerOnDesktop();
     }
 
     setInterval(maintain, 500);
