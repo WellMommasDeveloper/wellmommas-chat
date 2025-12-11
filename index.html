@@ -22,8 +22,6 @@
       --df-messenger-chat-window-height: 100vh;
       --df-messenger-chat-window-width: 100vw;
       --df-messenger-chat-bubble-display: none;
-      --df-messenger-titlebar-icon-display: none;
-      --df-messenger-minimized-chat-close-icon-display: none;
       --df-messenger-button-titlebar-color: #FFB538;
       --df-messenger-send-icon: #FFB538; 
       --df-messenger-user-message: #FFD19E;
@@ -42,13 +40,6 @@
       border-radius: 6px !important;
       border: 1px solid #D79D63 !important;
     }
-    /* Hide minimize/close button */
-    df-messenger::part(titlebar-minimize-button) {
-      display: none !important;
-    }
-    df-messenger::part(titlebar-close-button) {
-      display: none !important;
-    }
   </style>
 </head>
 <body>
@@ -66,13 +57,12 @@
   <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
   
   <script>
-    // Hide loading message once chat loads
     window.addEventListener('dfMessengerLoaded', function() {
       document.getElementById('loading').style.display = 'none';
       console.log('Dialogflow Messenger loaded successfully');
+      hideMinimizeButton();
     });
 
-    // Log any errors
     window.addEventListener('df-messenger-error', function(event) {
       console.error('Dialogflow error:', event.detail);
       document.getElementById('loading').textContent = 'Error loading chat. Please refresh.';
@@ -105,6 +95,43 @@
       return results;
     }
 
+    function hideMinimizeButton() {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return;
+      
+      // Find and hide minimize/close buttons
+      const buttons = findAllInShadowRoots(dfMessenger.shadowRoot, 'button, .minimize-button, .close-button, [class*="minimize"], [class*="close"]');
+      buttons.forEach(btn => {
+        const className = btn.className?.toLowerCase() || '';
+        const ariaLabel = btn.getAttribute('aria-label')?.toLowerCase() || '';
+        if (className.includes('minimize') || className.includes('close') || 
+            ariaLabel.includes('minimize') || ariaLabel.includes('close')) {
+          btn.style.display = 'none';
+        }
+      });
+
+      // Also try injecting CSS into shadow roots
+      const injectCSS = (shadowRoot) => {
+        if (!shadowRoot) return;
+        const style = document.createElement('style');
+        style.textContent = `
+          .minimize-button, .close-button, 
+          [class*="minimize"], [class*="close"],
+          button[aria-label*="minimize"], button[aria-label*="close"],
+          .titlebar button, .title-bar button {
+            display: none !important;
+          }
+        `;
+        shadowRoot.appendChild(style);
+        
+        shadowRoot.querySelectorAll('*').forEach(el => {
+          if (el.shadowRoot) injectCSS(el.shadowRoot);
+        });
+      };
+      
+      injectCSS(dfMessenger.shadowRoot);
+    }
+
     function hideInput() {
       const dfMessenger = document.querySelector('df-messenger');
       if (!dfMessenger?.shadowRoot) return false;
@@ -122,12 +149,21 @@
       const wrapper = findInShadowRoots(dfMessenger.shadowRoot, '.input-box-wrapper');
       if (wrapper) {
         wrapper.style.display = '';
-        const input = wrapper.querySelector('input[type="text"]');
-        if (input) {
-          input.setAttribute('placeholder', 'Respond...');
-        }
         inputEnabled = true;
       }
+    }
+
+    function updatePlaceholder() {
+      if (!inputEnabled) return;
+      const dfMessenger = document.querySelector('df-messenger');
+      if (!dfMessenger?.shadowRoot) return;
+      
+      const inputs = findAllInShadowRoots(dfMessenger.shadowRoot, 'input[type="text"], input:not([type])');
+      inputs.forEach(input => {
+        if (input.placeholder && input.placeholder !== 'Respond...') {
+          input.setAttribute('placeholder', 'Respond...');
+        }
+      });
     }
 
     function checkMessages() {
@@ -157,6 +193,8 @@
         hideInput();
       }
       checkMessages();
+      updatePlaceholder();
+      hideMinimizeButton();
     }
 
     setInterval(maintain, 500);
